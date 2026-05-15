@@ -1,5 +1,5 @@
-# PC에 Node 없이: GitHub 러너에서만 npx wrangler 실행
-# Secret: CLOUDFLARE_API_TOKEN (필수). 계정은 cloudflare/wrangler.toml 의 account_id 사용
+# GitHub에 이 파일이 반드시 올라가 있어야 합니다. (Code 탭에서 wrangler-action 이 없는지 확인)
+# Secret: CLOUDFLARE_API_TOKEN 필수. 계정: cloudflare/wrangler.toml 의 account_id
 
 name: Deploy Cloudflare Worker (D1 API)
 
@@ -20,22 +20,33 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - name: API 토큰 Secret 확인
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::GitHub 저장소 Settings → Secrets → CLOUDFLARE_API_TOKEN 이 비어 있거나 없습니다."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
 
-      - name: 파일 확인
-        run: ls -la cloudflare && ls -la cloudflare/src
+      - name: cloudflare 폴더 확인
+        run: ls -la cloudflare && ls -la cloudflare/src && head -20 cloudflare/wrangler.toml
 
-      - name: Wrangler whoami (토큰·계정 확인)
+      - name: Wrangler whoami
         working-directory: cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npx wrangler@4 whoami
 
       - name: Wrangler deploy
         working-directory: cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           WRANGLER_LOG: debug
         run: npx wrangler@4 deploy

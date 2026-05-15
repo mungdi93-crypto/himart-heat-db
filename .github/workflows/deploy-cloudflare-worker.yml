@@ -18,6 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 토큰/계정 문제는 여기서 먼저 드러남 (Deploy보다 로그가 짧고 읽기 쉬움)
+      - name: Verify Cloudflare token (whoami)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: whoami
+
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:

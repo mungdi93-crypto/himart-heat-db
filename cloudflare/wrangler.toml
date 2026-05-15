@@ -6,6 +6,10 @@
 # 5) wrangler deploy
 
 name = "himart-heat-api"
+# 배포 시 계정 지정 — 택1:
+# ① GitHub Secret 이름 정확히 CLOUDFLARE_ACCOUNT_ID (대시보드 오른쪽 Account ID 값)
+# ② 또는 아래 주석을 해제하고 값만 넣은 뒤, 워크플로에서 accountId 줄을 제거해도 됨
+# account_id = "ee77be4ab1481c3776571b10aaf23f21"
 main = "src/worker.js"
 compatibility_date = "2024-01-01"
 

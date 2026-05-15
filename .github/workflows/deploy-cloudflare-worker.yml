@@ -20,6 +20,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: "★ 이 단계가 보이면 새 워크플로입니다 (구버전은 wrangler-action만 보임)"
+        run: |
+          echo "WORKFLOW_TAG=himart-npx-wrangler4-no-third-party-action"
+          ls -la .github/workflows/
+          if grep -r "cloudflare/wrangler-action" .github/workflows/ 2>/dev/null; then
+            echo "::error::이 저장소에 아직 'cloudflare/wrangler-action' 이 들어 있는 YAML이 있습니다. 해당 파일을 삭제하거나 main에 최신 내용으로 덮어 푸시하세요."
+            exit 1
+          fi
+          echo "OK: wrangler-action 미사용"
+
       - name: API 토큰 Secret 확인
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

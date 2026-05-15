@@ -1,0 +1,16 @@
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*

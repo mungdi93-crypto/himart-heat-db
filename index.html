@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LOTTE HIMART 체감온도 관리</title>
+  <style>
+    :root { --red:#d71920; --red-d:#b80f15; --bg:#f7f8fa; --card:#fff; --line:#e5e7eb; --sub:#6b7280; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", Arial, sans-serif; background:var(--bg); color:#111827; }
+    .hidden { display:none !important; }
+    .container { width:min(1180px, 94vw); margin:20px auto; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    .login { max-width:460px; margin:64px auto; padding:26px; }
+    .logo { text-align:center; color:var(--red); font-size:26px; font-weight:800; margin-bottom:16px; letter-spacing:0.8px; }
+    .field { margin-bottom:10px; }
+    .field label { display:block; margin-bottom:6px; font-size:13px; color:var(--sub); }
+    input, select, textarea, button { width:100%; border-radius:10px; border:1px solid #d1d5db; padding:10px 12px; font-size:14px; }
+    button { border:none; background:var(--red); color:#fff; font-weight:700; cursor:pointer; }
+    button:hover { background:var(--red-d); }
+    button.ghost { background:#f3f4f6; color:#111827; }
+    .error { color:#b91c1c; font-size:13px; margin-top:8px; }
+    .success { color:#0f766e; font-size:13px; margin-top:8px; }
+    .muted { color:var(--sub); font-size:12px; }
+    .topbar { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; padding:14px 16px; }
+    .brand { text-align:center; color:var(--red); font-size:24px; font-weight:800; letter-spacing:0.8px; }
+    .left button, .right button { width:auto; padding:9px 14px; }
+    .right { display:flex; justify-content:flex-end; align-items:center; gap:8px; }
+    .center-tag { background:#fee2e2; color:#991b1b; border-radius:999px; padding:7px 11px; font-weight:700; font-size:12px; }
+    .icon-btn { width:40px !important; height:40px; border-radius:50%; padding:0; font-size:18px; display:flex; align-items:center; justify-content:center; }
+    .main { margin-top:14px; padding:18px; position:relative; min-height:520px; }
+    .chart-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:10px; flex-wrap:wrap; }
+    .head-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .seg { display:inline-flex; background:#f3f4f6; border-radius:999px; padding:3px; }
+    .seg button { width:auto; padding:6px 12px; border-radius:999px; background:transparent; color:#374151; }
+    .seg button.active { background:var(--red); color:#fff; }
+    .chart-wrap { height:420px; }
+    .register-zone { margin-top:16px; padding-top:14px; border-top:1px solid #eceff3; display:grid; grid-template-columns:1fr 3fr 1fr; gap:10px; align-items:center; width:100%; }
+    .place-filter { width:100% !important; min-width:0; }
+    .register-main-btn {
+      width:100% !important;
+      min-width:0;
+      padding:14px 24px;
+      font-size:17px;
+      border-radius:999px;
+      box-shadow:0 10px 20px rgba(215,25,32,0.28);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    .register-main-btn .icon { font-size:19px; line-height:1; }
+    .record-main-btn {
+      width:100% !important;
+      min-width:0;
+      padding:14px 22px;
+      font-size:16px;
+      border-radius:999px;
+      background:#111827;
+      box-shadow:0 10px 20px rgba(17,24,39,0.25);
+    }
+    .overlay { position:fixed; inset:0; background:rgba(17,24,39,0.45); display:none; z-index:20; }
+    .modal { width:min(860px, 94vw); margin:4vh auto; background:#fff; border-radius:14px; padding:16px; max-height:92vh; overflow:auto; }
+    .drawer { position:absolute; right:0; top:0; width:min(980px, 95vw); height:100%; background:#fff; padding:16px; overflow:auto; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; }
+    .hi-box { background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:10px; margin:10px 0; }
+    .hi-big { font-size:24px; color:#9f1239; font-weight:800; }
+    .badge { display:inline-flex; padding:4px 8px; border-radius:999px; font-size:11px; color:#fff; font-weight:700; }
+    .정상 { background:#16a34a; } .주의 { background:#f59e0b; } .경고 { background:#ea580c; } .위험 { background:#dc2626; } .매우위험 { background:#7f1d1d; }
+    .actions { border:1px solid #f0f1f3; border-radius:10px; padding:10px; margin-top:10px; }
+    .act-row { display:flex; align-items:flex-start; gap:8px; margin-bottom:8px; justify-content:flex-start; }
+    .act-row:last-child { margin-bottom:0; }
+    .act-row input { width:16px; height:16px; margin-top:2px; flex:0 0 16px; }
+    .act-row label { margin:0; font-size:13px; text-align:left; }
+    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius:10px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { border-bottom:1px solid #f0f1f3; padding:8px; text-align:left; white-space:nowrap; }
+    th { background:#f9fafb; position:sticky; top:0; }
+    .list-editor { border:1px solid var(--line); border-radius:10px; padding:10px; }
+    .pill-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .pill { background:#f3f4f6; border-radius:999px; padding:6px 10px; font-size:12px; display:flex; align-items:center; gap:6px; }
+    .pill button { width:auto; padding:3px 7px; font-size:11px; border-radius:999px; background:#ef4444; white-space:nowrap; }
+    .risk-big { font-size:16px; padding:10px 18px; min-width:144px; min-height:42px; justify-content:center; align-items:center; }
+    .rest-required-title { font-size:12px; color:var(--sub); margin-bottom:6px; text-align:left; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loginCard" class="card login">
+      <div class="logo">LOTTE HIMART</div>
+      <div class="field"><label>아이디</label><input id="loginId" type="text" placeholder="예: icheon / hq_admin" /></div>
+      <div class="field"><label>비밀번호</label><input id="loginPw" type="password" /></div>
+      <button onclick="onLogin()">로그인</button>
+      <div class="muted" style="margin-top:10px;">샘플: 본사(hq_admin / hq1234), 센터(icheon / tc1234)</div>
+      <div id="loginMsg" class="error"></div>
+    </div>
+
+    <div id="appSection" class="hidden">
+      <div class="card topbar">
+        <div class="left"><button onclick="logout()">로그아웃</button></div>
+        <div class="brand">LOTTE HIMART</div>
+        <div class="right">
+          <span id="centerTag" class="center-tag">-</span>
+          <button id="settingsBtn" class="icon-btn" title="설정" onclick="openSettingsModal()">⚙</button>
+        </div>
+      </div>
+
+      <div class="card main">
+        <div class="chart-head">
+          <strong>온도 · 습도 · 체감온도 추세</strong>
+          <div class="head-controls">
+            <select id="hqMainCenter" class="hidden" style="width:auto; min-width:150px;" onchange="loadRecords()"></select>
+            <div class="seg">
+              <button id="modeDayBtn" class="active" onclick="setChartMode('day')">일단위</button>
+              <button id="modeWeekBtn" onclick="setChartMode('week')">주단위</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+        <div class="register-zone">
+          <select id="chartPlaceFilter" class="place-filter" onchange="renderChart(currentRecords)">
+            <option value="ALL">전체 장소</option>
+          </select>
+          <button id="mainRegisterBtn" class="register-main-btn" onclick="openRegisterModal()">
+            <span class="icon">🌡️</span>
+            <span>체감온도 등록</span>
+          </button>
+          <button class="record-main-btn" onclick="openRecordDrawer()">기록</button>
+        </div>
+        <div id="saveMsg" class="success"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsOverlay" class="overlay">
+    <div class="modal">
+      <h3>설정</h3>
+      <div class="grid-2">
+        <div class="list-editor">
+          <strong>측정 장소 관리</strong>
+          <div class="field" style="margin-top:8px;">
+            <label class="hidden">센터</label><select id="settingsCenter" class="hidden"></select>
+          </div>
+          <div class="field" style="display:flex; gap:6px;">
+            <input id="settingsLocationInput" type="text" placeholder="새 장소 입력" />
+            <button type="button" style="width:auto; white-space:nowrap;" onclick="addLocationFromSettings()">추가</button>
+          </div>
+          <div id="locationPills" class="pill-list"></div>
+        </div>
+        <div class="list-editor">
+          <strong>측정자 관리</strong>
+          <div class="field" style="margin-top:8px;">
+            <label class="hidden">센터</label><select id="settingsMeasurerCenter" class="hidden"></select>
+          </div>
+          <div class="field" style="display:flex; gap:6px;">
+            <input id="settingsMeasurerInput" type="text" placeholder="예: 문영곤" />
+            <button type="button" style="width:auto; white-space:nowrap;" onclick="addMeasurerFromSettings()">추가</button>
+          </div>
+          <div id="measurerPills" class="pill-list"></div>
+        </div>
+      </div>
+      <div class="list-editor" style="margin-top:12px;">
+        <strong>비밀번호 변경</strong>
+        <div class="grid-3" style="margin-top:8px;">
+          <div class="field"><label>현재 비밀번호</label><input id="pwCurrent" type="password" /></div>
+          <div class="field"><label>새 비밀번호</label><input id="pwNew" type="password" /></div>
+          <div class="field"><label>새 비밀번호 확인</label><input id="pwNewConfirm" type="password" /></div>
+        </div>
+        <div style="display:flex; justify-content:flex-end;">
+          <button type="button" style="width:auto; white-space:nowrap;" onclick="changePasswordFromSettings()">비밀번호 변경</button>
+        </div>
+        <div id="pwMsg" class="muted"></div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+        <button class="ghost" style="width:auto;" onclick="closeSettingsModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="registerOverlay" class="overlay">
+    <div class="modal">
+      <h3>체감온도 기록 등록</h3>
+      <div class="grid-3">
+        <div class="field"><label>센터</label><select id="inputCenter"></select></div>
+        <div class="field"><label>일자</label><input id="measuredDate" type="date" /></div>
+        <div class="field"><label>시간</label><input id="measuredTime" type="time" step="600" /></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>측정장소</label><select id="inputLocationSelect"></select></div>
+        <div class="field"><label>측정인</label><select id="inputMeasurerSelect"></select></div>
+      </div>
+      <div class="grid-4">
+        <div class="field"><label>온도(℃)</label><input id="inputTemp" type="number" step="0.1" oninput="updateHeatPreview()" /></div>
+        <div class="field"><label>습도(%)</label><input id="inputHum" type="number" step="0.1" oninput="updateHeatPreview()" /></div>
+        <div class="field"><label>체감온도(자동)</label><input id="inputHeatReadOnly" type="text" readonly /></div>
+        <div class="field">
+          <label>위험수준</label>
+          <div style="padding-top:10px;"><span id="riskPreview" class="badge risk-big 정상">정상</span></div>
+        </div>
+      </div>
+
+      <div id="lawActionsWrap" class="actions hidden">
+        <div class="muted" style="margin-bottom:8px;">31℃ 이상 2시간 작업 시 조치 항목 선택 (복수 선택 가능)</div>
+        <div class="act-row"><input id="act1" type="checkbox" /><label for="act1">냉방·통풍 등을 위한 적절한 온도·습도 조절장치 설치/가동</label></div>
+        <div class="act-row"><input id="act2" type="checkbox" /><label for="act2">작업시간대 조정 등 폭염 노출을 줄일 수 있는 조치</label></div>
+        <div class="act-row"><input id="act3" type="checkbox" /><label for="act3">건강장해 예방을 위한 적절한 휴식시간 부여</label></div>
+      </div>
+
+      <div id="restWrap" class="hidden" style="margin-top:10px;">
+        <div class="rest-required-title">33℃ 이상 시 필수</div>
+        <div class="grid-3">
+        <div class="field"><label>휴식 시작시간</label><input id="restStartTime" type="time" step="600" onchange="updateRestMinutes()" /></div>
+        <div class="field"><label>휴식 종료시간</label><input id="restEndTime" type="time" step="600" onchange="updateRestMinutes()" /></div>
+        <div class="field"><label>자동 계산 휴식(분)</label><input id="restMinutesAuto" type="text" readonly /></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>조치내용 메모(선택)</label>
+        <textarea id="inputActionMemo" rows="3"></textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="ghost" style="width:auto;" onclick="closeRegisterModal()">취소</button>
+        <button style="width:auto;" onclick="onSave()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="recordOverlay" class="overlay">
+    <div class="drawer">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>기록 조회</h3>
+        <button class="ghost" style="width:auto;" onclick="closeRecordDrawer()">닫기</button>
+      </div>
+      <div class="grid-3" style="margin-bottom:10px;">
+        <div class="field"><label>시작일</label><input id="filterFrom" type="date" /></div>
+        <div class="field"><label>종료일</label><input id="filterTo" type="date" /></div>
+        <div class="field" id="hqFilterBox"><label>센터(본사)</label><select id="filterCenter"></select></div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:10px;"><button style="width:auto;" onclick="loadRecords()">조회</button></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>일자</th><th>시간</th><th>장소</th><th>체감온도</th><th>조치내용</th><th>입력자</th><th>삭제</th></tr></thead>
+          <tbody id="recordTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let currentUser = null, centers = [], actionRules = [], trendChart = null, chartMode = 'day', currentRecords = [];
+    /** Cloudflare Workers API 베이스 URL (끝 슬래시 없이). 설정: window.__HIMART_API_BASE__ 또는 URL ?api=...
+     *  API_SECRET 사용 시: window.__HIMART_API_KEY__ (wrangler secret put API_SECRET)
+     *  예: window.__HIMART_API_BASE__ = 'https://himart-heat-api.계정.workers.dev'; */
+    const API_BASE = (typeof window.__HIMART_API_BASE__ === 'string' && window.__HIMART_API_BASE__.trim()) ||
+      (new URLSearchParams(location.search).get('api') || '').trim();
+    const USE_GAS_BACKEND = !!(window.google && google.script && google.script.run) && !API_BASE;
+    const PREVIEW_MODE = !API_BASE && !USE_GAS_BACKEND;
+    const DEFAULT_LOCATIONS = ['상차장 A구역', '하역장', '검수장'];
+    const DEFAULT_MEASURERS = ['문영곤', '김봉준'];
+
+    function keyLoc(c) { return `himart_locations_${c}`; }
+    function keyMea(c) { return `himart_measurers_${c}`; }
+    function getList(key, defaults) { const raw = localStorage.getItem(key); if (!raw) return defaults.slice(); try { return JSON.parse(raw); } catch (_) { return defaults.slice(); } }
+    function setList(key, arr) { localStorage.setItem(key, JSON.stringify(arr)); }
+    function getLocations(c) { return getList(keyLoc(c), DEFAULT_LOCATIONS); }
+    function setLocations(c, v) { setList(keyLoc(c), v); }
+    function getMeasurers(c) { return getList(keyMea(c), DEFAULT_MEASURERS); }
+    function setMeasurers(c, v) { setList(keyMea(c), v); }
+
+    function getPreviewStore() { const raw = localStorage.getItem('himart_preview_records'); return raw ? JSON.parse(raw) : []; }
+    function setPreviewStore(v) { localStorage.setItem('himart_preview_records', JSON.stringify(v)); }
+    function formatLocalDate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function calcHeatIndexClient(tempC, humidity) {
+      const wetBulb = tempC * Math.atan(0.151977 * Math.sqrt(humidity + 8.313659)) + Math.atan(tempC + humidity) - Math.atan(humidity - 1.676331) + 0.00391838 * Math.pow(humidity, 1.5) * Math.atan(0.023101 * humidity) - 4.686035;
+      return Number((-0.2442 + 0.55399 * wetBulb + 0.45535 * tempC - 0.0022 * Math.pow(wetBulb, 2) + 0.00278 * tempC * wetBulb + 3).toFixed(1));
+    }
+    function calcRiskLevel(hi) { for (const r of actionRules) if (hi >= r.min && hi <= r.max) return r.level; return '정상'; }
+    function getDefaultActionByHeatIndex(hi) { for (const r of actionRules) if (hi >= r.min && hi <= r.max) return r.action; return ''; }
+
+    function serverRun(method, payload, ok, fail) {
+      if (API_BASE) {
+        const base = API_BASE.replace(/\/$/, '');
+        const headers = { 'Content-Type': 'application/json' };
+        if (typeof window.__HIMART_API_KEY__ === 'string' && window.__HIMART_API_KEY__) {
+          headers['X-API-Key'] = window.__HIMART_API_KEY__;
+        }
+        fetch(`${base}/api/${method}`, { method: 'POST', headers, body: JSON.stringify(payload) })
+          .then(res => res.json().then(data => ({ res, data })))
+          .then(({ res, data }) => {
+            if (!res.ok || data.ok === false) {
+              (fail || console.error)(new Error(data.message || `HTTP ${res.status}`));
+              return;
+            }
+            ok(data);
+          })
+          .catch(err => (fail || console.error)(err));
+        return;
+      }
+      if (USE_GAS_BACKEND) {
+        if (method === 'login') google.script.run.withSuccessHandler(ok).withFailureHandler(fail || console.error).login(payload.id, payload.pw);
+        else google.script.run.withSuccessHandler(ok).withFailureHandler(fail || console.error)[method](payload);
+        return;
+      }
+      try {
+        const centersSeed = ['이천TC', '인천TC', '파주TC', '강릉TC', '마산TC', '대구TC', '양산TC', '공주TC', '제주TC', 'TC', '화성TC', '광주TC'];
+        const rulesSeed = [
+          { min: -100, max: 26.9, level: '정상', action: '일반 작업 가능, 수분 섭취 권장' },
+          { min: 27, max: 29.9, level: '주의', action: '작업자 수분 섭취 강화, 휴식 안내' },
+          { min: 30, max: 32.9, level: '경고', action: '작업강도 조절, 휴식시간 확대, 취약자 집중관리' },
+          { min: 33, max: 35.9, level: '위험', action: '고강도 작업 제한, 냉방/환기 조치 강화, 순환 휴식' },
+          { min: 36, max: 100, level: '매우위험', action: '작업중지 검토, 긴급 보호조치 시행' }
+        ];
+        const userMap = { hq_admin:{ pw:'hq1234', role:'HQ', center:'ALL', name:'본사관리자' }, icheon:{ pw:'tc1234', role:'CENTER', center:'이천TC', name:'이천 담당자' } };
+        if (method === 'login') {
+          const u = userMap[payload.id]; if (!u || u.pw !== payload.pw) return ok({ ok:false, message:'아이디 또는 비밀번호가 올바르지 않습니다.' });
+          return ok({ ok:true, user:{ userId:payload.id, role:u.role, center:u.center, name:u.name }, centers:centersSeed, actionRules:rulesSeed });
+        }
+        if (method === 'saveRecord') {
+          const rows = getPreviewStore();
+          const hi = calcHeatIndexClient(Number(payload.temperatureC), Number(payload.humidity));
+          rows.push({
+            id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            createdAt: new Date().toString(),
+            measuredAt: payload.measuredAt || new Date().toString(),
+            center: payload.center, location: payload.location, measurer: payload.measurer || payload.userId,
+            temperatureC: Number(payload.temperatureC), humidity: Number(payload.humidity), heatIndexC: hi, riskLevel: calcRiskLevel(hi),
+            actionMemo: payload.actionMemo || '', selectedActions: (payload.selectedActions || []).join(' | '),
+            restStart: payload.restStart || '', restEnd: payload.restEnd || '', restMinutes: payload.restMinutes || '', userId: payload.userId
+          });
+          setPreviewStore(rows);
+          return ok({ ok:true, record:{ heatIndexC:hi, riskLevel:calcRiskLevel(hi) } });
+        }
+        if (method === 'deleteRecord') {
+          const rows = getPreviewStore();
+          const next = rows.filter(r => String(r.id) !== String(payload.id));
+          setPreviewStore(next);
+          return ok({ ok:true, message:'기록이 삭제되었습니다.' });
+        }
+        if (method === 'changePassword') {
+          return ok({ ok:true, message:'프리뷰 모드에서는 비밀번호 변경이 서버에 반영되지 않습니다.' });
+        }
+        if (method === 'getRecords') {
+          let rows = getPreviewStore();
+          const from = payload.fromDate ? new Date(payload.fromDate + 'T00:00:00') : null;
+          const to = payload.toDate ? new Date(payload.toDate + 'T23:59:59') : null;
+          rows = rows.filter(r => {
+            const dt = new Date(r.measuredAt || r.createdAt);
+            if (from && dt < from) return false;
+            if (to && dt > to) return false;
+            if (payload.role === 'CENTER' && r.center !== payload.center) return false;
+            if (payload.role === 'HQ' && payload.filterCenter && payload.filterCenter !== 'ALL' && r.center !== payload.filterCenter) return false;
+            return true;
+          }).sort((a,b) => new Date(a.measuredAt || a.createdAt) - new Date(b.measuredAt || b.createdAt));
+          const mapped = rows.map(r => {
+            const dt = new Date(r.measuredAt || r.createdAt);
+            return { measuredAtRaw:dt.getTime(), date:dt.toLocaleDateString('ko-KR'), time:dt.toLocaleTimeString('ko-KR',{hour12:false}),
+              id:r.id || '',
+              location:r.location, measurer:r.measurer || r.userId, temperatureC:r.temperatureC, humidity:r.humidity, heatIndexC:r.heatIndexC,
+              riskLevel:r.riskLevel, actionMemo:r.actionMemo, selectedActions:r.selectedActions || '', restStart:r.restStart || '', restEnd:r.restEnd || '', restMinutes:r.restMinutes || '', userId:r.userId };
+          });
+          return ok({ ok:true, records:mapped, trend:[], centers:centersSeed });
+        }
+      } catch (e) { if (fail) fail(e); }
+    }
+
+    function onLogin() {
+      const id = document.getElementById('loginId').value.trim(), pw = document.getElementById('loginPw').value.trim(), msg = document.getElementById('loginMsg');
+      msg.textContent = ''; if (!id || !pw) { msg.textContent = '아이디/비밀번호를 입력하세요.'; return; }
+      serverRun('login', { id, pw }, res => {
+        if (!res.ok) { msg.textContent = res.message || '로그인 실패'; return; }
+        currentUser = res.user; centers = res.centers || []; actionRules = res.actionRules || [];
+        initAfterLogin(); loadRecords();
+      }, err => { msg.textContent = err.message || '서버 오류'; });
+    }
+
+    function initAfterLogin() {
+      document.getElementById('loginCard').classList.add('hidden');
+      document.getElementById('appSection').classList.remove('hidden');
+      document.getElementById('centerTag').textContent = currentUser.role === 'CENTER' ? currentUser.center : '본사';
+      document.getElementById('mainRegisterBtn').classList.toggle('hidden', currentUser.role === 'HQ');
+      document.getElementById('settingsBtn').classList.toggle('hidden', currentUser.role === 'HQ');
+
+      const inputCenter = document.getElementById('inputCenter');
+      inputCenter.innerHTML = '';
+      if (currentUser.role === 'CENTER') { inputCenter.innerHTML = `<option value="${currentUser.center}">${currentUser.center}</option>`; inputCenter.disabled = true; }
+      else { centers.forEach(c => inputCenter.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`)); inputCenter.disabled = false; }
+      inputCenter.onchange = () => { refreshRegisterSelects(); };
+
+      const filterCenter = document.getElementById('filterCenter');
+      filterCenter.innerHTML = '<option value="ALL">전체</option>'; centers.forEach(c => filterCenter.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`));
+      document.getElementById('hqFilterBox').style.display = currentUser.role === 'HQ' ? 'block' : 'none';
+      const hqMainCenter = document.getElementById('hqMainCenter');
+      if (currentUser.role === 'HQ') {
+        hqMainCenter.classList.remove('hidden');
+        hqMainCenter.innerHTML = '<option value="ALL">전체 TC</option>';
+        centers.forEach(c => hqMainCenter.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`));
+      } else {
+        hqMainCenter.classList.add('hidden');
+      }
+
+      const now = new Date();
+      const today = formatLocalDate(now);
+      const monthStart = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      document.getElementById('filterFrom').value = monthStart;
+      document.getElementById('filterTo').value = today;
+
+      const sc = document.getElementById('settingsCenter');
+      const sm = document.getElementById('settingsMeasurerCenter');
+      sc.innerHTML = ''; sm.innerHTML = '';
+      const useCenters = currentUser.role === 'CENTER' ? [currentUser.center] : centers;
+      useCenters.forEach(c => { sc.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`); sm.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`); });
+      sc.onchange = renderLocationPills;
+      sm.onchange = renderMeasurerPills;
+      renderLocationPills(); renderMeasurerPills();
+
+      refreshRegisterSelects();
+      setChartMode('day');
+    }
+
+    function logout() { currentUser = null; document.getElementById('appSection').classList.add('hidden'); document.getElementById('loginCard').classList.remove('hidden'); if (trendChart) trendChart.destroy(); }
+
+    function openSettingsModal() { document.getElementById('settingsOverlay').style.display = 'block'; renderLocationPills(); renderMeasurerPills(); }
+    function closeSettingsModal() { document.getElementById('settingsOverlay').style.display = 'none'; refreshRegisterSelects(); }
+    function openRegisterModal() {
+      const now = new Date();
+      document.getElementById('measuredDate').value = formatLocalDate(now);
+      const roundedMin = Math.floor(now.getMinutes() / 10) * 10;
+      document.getElementById('measuredTime').value = `${String(now.getHours()).padStart(2, '0')}:${String(roundedMin).padStart(2, '0')}`;
+      document.getElementById('inputTemp').value = ''; document.getElementById('inputHum').value = ''; document.getElementById('inputHeatReadOnly').value = '';
+      document.getElementById('restStartTime').value = ''; document.getElementById('restEndTime').value = ''; document.getElementById('restMinutesAuto').value = '';
+      document.getElementById('act1').checked = false; document.getElementById('act2').checked = false; document.getElementById('act3').checked = false;
+      document.getElementById('inputActionMemo').value = '';
+      document.getElementById('registerOverlay').style.display = 'block';
+      refreshRegisterSelects();
+      updateHeatPreview();
+    }
+    function closeRegisterModal() { document.getElementById('registerOverlay').style.display = 'none'; }
+    function openRecordDrawer() { document.getElementById('recordOverlay').style.display = 'block'; }
+    function closeRecordDrawer() { document.getElementById('recordOverlay').style.display = 'none'; }
+    function deleteRecordById(id) {
+      if (!id) return;
+      if (!confirm('이 기록을 삭제하시겠습니까?')) return;
+      serverRun('deleteRecord', { id, role: currentUser.role, center: currentUser.center, userId: currentUser.userId }, res => {
+        const msg = document.getElementById('saveMsg');
+        if (!res.ok) { msg.className = 'error'; msg.textContent = res.message || '삭제 실패'; return; }
+        msg.className = 'success';
+        msg.textContent = res.message || '삭제되었습니다.';
+        loadRecords();
+      }, err => {
+        const msg = document.getElementById('saveMsg');
+        msg.className = 'error';
+        msg.textContent = err.message || '삭제 중 오류가 발생했습니다.';
+      });
+    }
+
+    function selectedCenterForRegister() { return currentUser.role === 'CENTER' ? currentUser.center : document.getElementById('inputCenter').value; }
+    function refreshRegisterSelects() {
+      const c = selectedCenterForRegister();
+      const locSel = document.getElementById('inputLocationSelect'), meaSel = document.getElementById('inputMeasurerSelect');
+      locSel.innerHTML = ''; meaSel.innerHTML = '';
+      getLocations(c).forEach(v => locSel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`));
+      getMeasurers(c).forEach(v => meaSel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`));
+      if (!locSel.options.length) locSel.innerHTML = '<option value="">장소 없음(설정에서 추가)</option>';
+      if (!meaSel.options.length) meaSel.innerHTML = '<option value="">측정자 없음(설정에서 추가)</option>';
+    }
+
+    function renderLocationPills() {
+      const c = document.getElementById('settingsCenter').value, box = document.getElementById('locationPills');
+      const list = getLocations(c);
+      box.innerHTML = list.map(v => `<span class="pill">${escapeHtml(v)} <button type="button" onclick="removeLocationFromSettings('${escapeJs(c)}','${escapeJs(v)}')">삭제</button></span>`).join('') || '<span class="muted">등록된 장소 없음</span>';
+    }
+    function renderMeasurerPills() {
+      const c = document.getElementById('settingsMeasurerCenter').value, box = document.getElementById('measurerPills');
+      const list = getMeasurers(c);
+      box.innerHTML = list.map(v => `<span class="pill">${escapeHtml(v)} <button type="button" onclick="removeMeasurerFromSettings('${escapeJs(c)}','${escapeJs(v)}')">삭제</button></span>`).join('') || '<span class="muted">등록된 측정자 없음</span>';
+    }
+    function addLocationFromSettings() {
+      const c = document.getElementById('settingsCenter').value, input = document.getElementById('settingsLocationInput'), v = input.value.trim(); if (!v) return;
+      const list = getLocations(c); if (!list.includes(v)) list.push(v); setLocations(c, list); input.value = ''; renderLocationPills();
+    }
+    function removeLocationFromSettings(center, value) { setLocations(center, getLocations(center).filter(v => v !== value)); renderLocationPills(); refreshRegisterSelects(); }
+    function addMeasurerFromSettings() {
+      const c = document.getElementById('settingsMeasurerCenter').value, input = document.getElementById('settingsMeasurerInput'), v = input.value.trim(); if (!v) return;
+      const list = getMeasurers(c); if (!list.includes(v)) list.push(v); setMeasurers(c, list); input.value = ''; renderMeasurerPills();
+    }
+    function removeMeasurerFromSettings(center, value) { setMeasurers(center, getMeasurers(center).filter(v => v !== value)); renderMeasurerPills(); refreshRegisterSelects(); }
+    function changePasswordFromSettings() {
+      const currentPassword = document.getElementById('pwCurrent').value.trim();
+      const newPassword = document.getElementById('pwNew').value.trim();
+      const newPasswordConfirm = document.getElementById('pwNewConfirm').value.trim();
+      const msg = document.getElementById('pwMsg');
+      msg.className = 'muted';
+      msg.textContent = '';
+      if (!currentPassword || !newPassword || !newPasswordConfirm) { msg.className = 'error'; msg.textContent = '비밀번호 항목을 모두 입력해주세요.'; return; }
+      if (newPassword !== newPasswordConfirm) { msg.className = 'error'; msg.textContent = '새 비밀번호 확인이 일치하지 않습니다.'; return; }
+      serverRun('changePassword', { userId: currentUser.userId, currentPassword, newPassword }, res => {
+        if (!res.ok) { msg.className = 'error'; msg.textContent = res.message || '변경 실패'; return; }
+        msg.className = 'success'; msg.textContent = res.message || '비밀번호가 변경되었습니다.';
+        document.getElementById('pwCurrent').value = '';
+        document.getElementById('pwNew').value = '';
+        document.getElementById('pwNewConfirm').value = '';
+      }, err => { msg.className = 'error'; msg.textContent = err.message || '서버 오류'; });
+    }
+
+    function updateRestMinutes() {
+      const s = document.getElementById('restStartTime').value, e = document.getElementById('restEndTime').value;
+      const out = document.getElementById('restMinutesAuto');
+      if (!s || !e) { out.value = ''; return; }
+      const [sh, sm] = s.split(':').map(Number), [eh, em] = e.split(':').map(Number);
+      let mins = (eh * 60 + em) - (sh * 60 + sm);
+      if (mins < 0) mins += 24 * 60;
+      out.value = `${mins}분`;
+    }
+
+    function updateHeatPreview() {
+      const t = Number(document.getElementById('inputTemp').value), h = Number(document.getElementById('inputHum').value);
+      const heatInput = document.getElementById('inputHeatReadOnly'), risk = document.getElementById('riskPreview');
+      if (isNaN(t) || isNaN(h)) {
+        heatInput.value = ''; risk.textContent = '정상'; risk.className = 'badge risk-big 정상';
+        document.getElementById('lawActionsWrap').classList.add('hidden'); document.getElementById('restWrap').classList.add('hidden'); return;
+      }
+      const hi = calcHeatIndexClient(t, h), lv = calcRiskLevel(hi);
+      heatInput.value = `${hi}℃`; risk.textContent = lv; risk.className = `badge risk-big ${lv}`;
+      document.getElementById('lawActionsWrap').classList.toggle('hidden', hi < 31);
+      document.getElementById('restWrap').classList.toggle('hidden', hi < 33);
+      if (hi < 31) { document.getElementById('act1').checked = false; document.getElementById('act2').checked = false; document.getElementById('act3').checked = false; }
+      if (hi >= 33) {
+        const startEl = document.getElementById('restStartTime');
+        const endEl = document.getElementById('restEndTime');
+        if (!startEl.value) {
+          const now = new Date();
+          const rounded = new Date(now);
+          rounded.setMinutes(Math.floor(rounded.getMinutes() / 10) * 10, 0, 0);
+          const end = new Date(rounded.getTime() + 20 * 60 * 1000);
+          startEl.value = `${String(rounded.getHours()).padStart(2, '0')}:${String(rounded.getMinutes()).padStart(2, '0')}`;
+          endEl.value = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
+          updateRestMinutes();
+        }
+      } else {
+        document.getElementById('restStartTime').value = '';
+        document.getElementById('restEndTime').value = '';
+        document.getElementById('restMinutesAuto').value = '';
+      }
+    }
+    function selectedActions() { const a=[]; if (document.getElementById('act1').checked) a.push('냉방/통풍 장치 설치·가동'); if (document.getElementById('act2').checked) a.push('작업시간대 조정'); if (document.getElementById('act3').checked) a.push('적절한 휴식시간 부여'); return a; }
+
+    function onSave() {
+      const center = selectedCenterForRegister(), date = document.getElementById('measuredDate').value, time = document.getElementById('measuredTime').value;
+      const location = document.getElementById('inputLocationSelect').value, measurer = document.getElementById('inputMeasurerSelect').value;
+      const temp = Number(document.getElementById('inputTemp').value), hum = Number(document.getElementById('inputHum').value), hi = calcHeatIndexClient(temp, hum);
+      const restStart = document.getElementById('restStartTime').value, restEnd = document.getElementById('restEndTime').value;
+      const restMinText = document.getElementById('restMinutesAuto').value, restMinutes = restMinText ? restMinText.replace('분', '') : '';
+      const memo = document.getElementById('inputActionMemo').value.trim(), msg = document.getElementById('saveMsg');
+      msg.textContent = '';
+
+      if (!date || !time || !location || !measurer || document.getElementById('inputTemp').value === '' || document.getElementById('inputHum').value === '' || isNaN(temp) || isNaN(hum)) { msg.textContent = '센터/일자/시간/장소/측정인/온도/습도는 필수입니다.'; msg.className = 'error'; return; }
+      const minuteNum = Number(time.split(':')[1]);
+      if (minuteNum % 10 !== 0) { msg.textContent = '시간은 10분 단위로만 입력 가능합니다.'; msg.className = 'error'; return; }
+      if (hi >= 31 && selectedActions().length === 0) { msg.textContent = '31℃ 이상은 조치 항목을 1개 이상 선택해주세요.'; msg.className = 'error'; return; }
+      if (hi >= 33 && (!restStart || !restEnd || !restMinutes || Number(restMinutes) <= 0)) { msg.textContent = '33℃ 이상은 휴식 시작/종료시간을 설정해주세요.'; msg.className = 'error'; return; }
+
+      const payload = {
+        userId: currentUser.userId, role: currentUser.role, center, measuredAt: `${date}T${time}:00`, location, measurer,
+        temperatureC: temp, humidity: hum, actionMemo: memo || getDefaultActionByHeatIndex(hi), selectedActions: selectedActions(),
+        restStart, restEnd, restMinutes
+      };
+      serverRun('saveRecord', payload, res => {
+        if (!res.ok) { msg.textContent = res.message || '저장 실패'; msg.className = 'error'; return; }
+        msg.textContent = `저장 완료 · 체감온도 ${res.record.heatIndexC}℃`; msg.className = 'success';
+        closeRegisterModal(); loadRecords();
+      }, err => { msg.textContent = err.message || '서버 오류'; msg.className = 'error'; });
+    }
+
+    function loadRecords() {
+      if (!currentUser) return;
+      const q = { role: currentUser.role, center: currentUser.center, fromDate: document.getElementById('filterFrom').value || '', toDate: document.getElementById('filterTo').value || '', filterCenter: document.getElementById('filterCenter').value || 'ALL' };
+      if (currentUser.role === 'HQ') {
+        q.filterCenter = document.getElementById('hqMainCenter').value || 'ALL';
+        document.getElementById('filterCenter').value = q.filterCenter;
+      }
+      serverRun('getRecords', q, res => {
+        if (!res.ok) return;
+        currentRecords = (res.records || []).map(r => {
+          const dt = new Date(r.measuredAtRaw || `${r.date} ${r.time}`);
+          const rounded = new Date(dt);
+          rounded.setMinutes(Math.floor(rounded.getMinutes() / 10) * 10, 0, 0);
+          return {
+            ...r,
+            measuredAtRaw: rounded.getTime(),
+            time: `${String(rounded.getHours()).padStart(2, '0')}:${String(rounded.getMinutes()).padStart(2, '0')}`
+          };
+        });
+        updateChartPlaceFilter(currentRecords);
+        renderTable(currentRecords);
+        renderChart(currentRecords);
+      }, console.error);
+    }
+    function setChartMode(mode) { chartMode = mode; document.getElementById('modeDayBtn').classList.toggle('active', mode === 'day'); document.getElementById('modeWeekBtn').classList.toggle('active', mode === 'week'); renderChart(currentRecords); }
+
+    function aggregateChart(records) {
+      if (!records || !records.length) return { labels:[], temp:[], hum:[], hi:[] };
+      const place = document.getElementById('chartPlaceFilter').value;
+      const target = place && place !== 'ALL' ? records.filter(r => r.location === place) : records;
+      if (!target.length) return { labels:[], temp:[], hum:[], hi:[] };
+      if (chartMode === 'week') {
+        const map = {};
+        target.forEach(r => {
+          const dt = new Date(r.measuredAtRaw || new Date(`${r.date} ${r.time}`));
+          const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+          if (!map[key]) map[key] = { t:0, h:0, hi:0, c:0 };
+          map[key].t += Number(r.temperatureC || 0); map[key].h += Number(r.humidity || 0); map[key].hi += Number(r.heatIndexC || 0); map[key].c += 1;
+        });
+        const labels=[], temp=[], hum=[], hi=[];
+        Object.keys(map).sort().slice(-7).forEach(k => { labels.push(k.slice(5)); temp.push(Number((map[k].t/map[k].c).toFixed(1))); hum.push(Number((map[k].h/map[k].c).toFixed(1))); hi.push(Number((map[k].hi/map[k].c).toFixed(1))); });
+        return { labels, temp, hum, hi };
+      }
+      const labels = Array.from({length:24}, (_,i) => `${String(i).padStart(2,'0')}:00`);
+      const bucket = Array.from({length:24}, () => ({ t:0, h:0, hi:0, c:0 }));
+      target.forEach(r => {
+        const dt = new Date(r.measuredAtRaw || new Date(`${r.date} ${r.time}`));
+        const h = dt.getHours(); bucket[h].t += Number(r.temperatureC || 0); bucket[h].h += Number(r.humidity || 0); bucket[h].hi += Number(r.heatIndexC || 0); bucket[h].c += 1;
+      });
+      return { labels, temp:bucket.map(v => v.c ? Number((v.t/v.c).toFixed(1)) : null), hum:bucket.map(v => v.c ? Number((v.h/v.c).toFixed(1)) : null), hi:bucket.map(v => v.c ? Number((v.hi/v.c).toFixed(1)) : null) };
+    }
+
+    function renderChart(records) {
+      const a = aggregateChart(records), ctx = document.getElementById('trendChart').getContext('2d');
+      if (trendChart) trendChart.destroy();
+      trendChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: a.labels, datasets: [
+          { label:'온도(℃)', data:a.temp, yAxisID:'yTemp', borderColor:'#ef4444', backgroundColor:'#ef4444', borderWidth:2, tension:0.3, pointRadius:2 },
+          { label:'체감온도(℃)', data:a.hi, yAxisID:'yTemp', borderColor:'#b91c1c', backgroundColor:'#b91c1c', borderWidth:3, tension:0.3, pointRadius:2 },
+          { label:'습도(%)', data:a.hum, yAxisID:'yHum', borderColor:'#2563eb', backgroundColor:'#2563eb', borderWidth:2, tension:0.3, pointRadius:2 }
+        ]},
+        options: {
+          maintainAspectRatio:false, responsive:true, plugins:{ legend:{ display:true }},
+          scales:{
+            x:{ title:{ display:true, text: chartMode === 'day' ? '24시간' : '최근 7일' }},
+            yTemp:{ type:'linear', position:'left', min:25, max:39, ticks:{ stepSize:1 }},
+            yHum:{ type:'linear', position:'right', min:40, max:100, ticks:{ stepSize:10 }, grid:{ drawOnChartArea:false }}
+          }
+        }
+      });
+    }
+
+    function buildActionText(r) {
+      let s = r.actionMemo || ''; if (r.selectedActions) s += (s ? ' / ' : '') + r.selectedActions;
+      if (r.restStart && r.restEnd) s += `${s ? ' / ' : ''}휴식 ${r.restStart}~${r.restEnd}${r.restMinutes ? ` (${r.restMinutes}분)` : ''}`;
+      return s || '-';
+    }
+    function truncText(s, max) {
+      const t = String(s || '');
+      return t.length > max ? `${t.slice(0, max)}...` : t;
+    }
+    function updateChartPlaceFilter(rows) {
+      const sel = document.getElementById('chartPlaceFilter');
+      const prev = sel.value || 'ALL';
+      const places = Array.from(new Set((rows || []).map(r => r.location).filter(Boolean))).sort();
+      sel.innerHTML = '<option value="ALL">전체 장소</option>' + places.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+      sel.value = places.includes(prev) ? prev : 'ALL';
+    }
+    function renderTable(rows) {
+      const body = document.getElementById('recordTbody');
+      if (!rows.length) { body.innerHTML = '<tr><td colspan="7" class="muted">조회된 데이터가 없습니다.</td></tr>'; return; }
+      body.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.date || ''}</td>
+          <td>${r.time || ''}</td>
+          <td>${escapeHtml(r.location || '')}</td>
+          <td><span class="badge ${r.riskLevel || '정상'}">${r.heatIndexC}℃</span></td>
+          <td title="${escapeHtml(buildActionText(r))}">${escapeHtml(truncText(buildActionText(r), 10))}</td>
+          <td>${escapeHtml(r.measurer || r.userId || '')}</td>
+          <td><button style="width:auto; padding:6px 10px; font-size:12px; background:#ef4444;" onclick="deleteRecordById('${escapeJs(r.id || '')}')">삭제</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function escapeHtml(s) { return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+    function escapeJs(s) { return String(s).replaceAll('\\','\\\\').replaceAll("'","\\'"); }
+  </script>
+</body>
+</html>

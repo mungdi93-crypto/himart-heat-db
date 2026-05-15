@@ -1,0 +1,19 @@
+# Cloudflare Workers + D1 (체감온도 앱 백엔드)
+# 1) wrangler d1 create himart-heat-db
+# 2) 아래 database_id를 출력값으로 교체
+# 3) wrangler d1 execute himart-heat-db --file=./schema.sql
+# 4) wrangler secret put API_SECRET   # (선택) API 보호용 공통 비밀키
+# 5) wrangler deploy
+
+name = "himart-heat-api"
+main = "src/worker.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "himart-heat-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+[vars]
+# 배포 후 Workers URL을 index.html 의 API_BASE 로 넣으세요.
+ALLOWED_ORIGIN = "*"

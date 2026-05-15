@@ -1,6 +1,5 @@
-# PC에 Node.js 없이: GitHub Actions가 Wrangler로 Worker 배포
-# Secrets: CLOUDFLARE_API_TOKEN (필수), CLOUDFLARE_ACCOUNT_ID (권장, 없으면 wrangler.toml에 account_id 추가)
-# 토큰: https://dash.cloudflare.com/profile/api-tokens → Workers + D1 편집 권한 포함
+# Secrets: CLOUDFLARE_API_TOKEN (필수). account_id는 cloudflare/wrangler.toml 권장.
+# 토큰: https://dash.cloudflare.com/profile/api-tokens → Workers Scripts Edit + D1 Edit
 
 name: Deploy Cloudflare Worker (D1 API)
 
@@ -12,23 +11,28 @@ on:
       - ".github/workflows/deploy-cloudflare-worker.yml"
   workflow_dispatch:
 
+env:
+  # GitHub Actions Node 20 경고 완화(2026년 이후 러너 기본값 대비)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      # 토큰/계정 문제는 여기서 먼저 드러남 (Deploy보다 로그가 짧고 읽기 쉬움)
+      # wrangler.toml 이 있는 디렉터리에서 실행해야 함
       - name: Verify Cloudflare token (whoami)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cloudflare
           command: whoami
 
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: cloudflare
+          wranglerVersion: "4"
+          command: deploy

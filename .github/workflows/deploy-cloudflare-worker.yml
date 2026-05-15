@@ -1,0 +1,26 @@
+# PC에 Node.js 없이: GitHub Actions가 Wrangler로 Worker 배포
+# Secrets: CLOUDFLARE_API_TOKEN (필수), CLOUDFLARE_ACCOUNT_ID (권장, 없으면 wrangler.toml에 account_id 추가)
+# 토큰: https://dash.cloudflare.com/profile/api-tokens → Workers + D1 편집 권한 포함
+
+name: Deploy Cloudflare Worker (D1 API)
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "cloudflare/**"
+      - ".github/workflows/deploy-cloudflare-worker.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cloudflare

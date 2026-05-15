@@ -1,5 +1,5 @@
-# Secrets: CLOUDFLARE_API_TOKEN (필수). account_id는 cloudflare/wrangler.toml 권장.
-# 토큰: https://dash.cloudflare.com/profile/api-tokens → Workers Scripts Edit + D1 Edit
+# PC에 Node 없이: GitHub 러너에서만 npx wrangler 실행
+# Secret: CLOUDFLARE_API_TOKEN (필수). 계정은 cloudflare/wrangler.toml 의 account_id 사용
 
 name: Deploy Cloudflare Worker (D1 API)
 
@@ -12,7 +12,6 @@ on:
   workflow_dispatch:
 
 env:
-  # GitHub Actions Node 20 경고 완화(2026년 이후 러너 기본값 대비)
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -21,18 +20,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # wrangler.toml 이 있는 디렉터리에서 실행해야 함
-      - name: Verify Cloudflare token (whoami)
-        uses: cloudflare/wrangler-action@v3
+      - uses: actions/setup-node@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: cloudflare
-          command: whoami
+          node-version: "22"
 
-      - name: Deploy Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: cloudflare
-          wranglerVersion: "4"
-          command: deploy
+      - name: 파일 확인
+        run: ls -la cloudflare && ls -la cloudflare/src
+
+      - name: Wrangler whoami (토큰·계정 확인)
+        working-directory: cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler@4 whoami
+
+      - name: Wrangler deploy
+        working-directory: cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_LOG: debug
+        run: npx wrangler@4 deploy

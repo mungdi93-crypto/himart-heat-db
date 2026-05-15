@@ -12,7 +12,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "himart-heat-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "0dbf32f1-fb48-4810-87ae-b5bddf4e7bb9"
 
 [vars]
 # 배포 후 Workers URL을 index.html 의 API_BASE 로 넣으세요.
